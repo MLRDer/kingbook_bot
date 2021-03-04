@@ -1,5 +1,5 @@
 {
-    "base_url": "http://localhost:4000/api",
+    "base_url": "https://kingbook.uz/api",
     "phone": {
         "uz": "Telefon raqamingiz:",
         "ru": "Твой номер телефона:"
