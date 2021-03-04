@@ -1,0 +1,67 @@
+{
+    "base_url": "http://localhost:4000/api",
+    "phone": {
+        "uz": "Telefon raqamingiz:",
+        "ru": "Твой номер телефона:"
+    },
+    "order": {
+        "uz": "Qaysi kitobni buyurtma qilasiz:",
+        "ru": "Какую книгу вы заказываете:"
+    },
+    "location": {
+        "uz": "Joylashuv / Location:",
+        "ru": "Место расположения / Location:"
+    },
+    "error": {
+        "uz": "Xatolik yuz berdi. Boshidan boshlash uchun /start buyrug'ini bosing!",
+        "ru": "Произошла ошибка. Нажмите команду / start, чтобы начать все заново!"
+    },
+    "my_number": {
+        "uz": "📞 Mening raqamim 📞",
+        "ru": "📞 Mой номер 📞"
+    },
+    "category": {
+        "uz": "Kategoriya tanlang!",
+        "ru": "Выберите категорию!"
+    },
+    "books": {
+        "uz": "📚 Kitoblar 📚",
+        "ru": "📚 Книги 📚"
+    },
+    "videos": {
+        "uz": "💿 Video darslar 💿",
+        "ru": "💿 Видео уроки 💿"
+    },
+    "option": {
+        "uz": "Iltimos faqat quyidagilardan birini tanlang!",
+        "ru": "Пожалуйста, выберите только одно из следующих!"
+    },
+    "available_books": {
+        "uz": "Buyurtma bermoqchi bo'lgan kitobni tanlang:",
+        "ru": "Выберите книгу, которую хотите заказать:"
+    },
+    "available_videos": {
+        "uz": "Buyurtma bermoqchi bo'lgan video darslikni tanlang:",
+        "ru": "Выберите видеоурок, который хотите заказать:"
+    },
+    "back": {
+        "uz": "🔙 Ortga 🔙",
+        "ru": "🔙 Назад 🔙"
+    },
+    "next": {
+        "uz": "➡️ Keyingisi ➡️",
+        "ru": "➡️ Cледующий ➡️"
+    },
+    "thanks": {
+        "uz": "Buyurtmangiz uchun rahmat😊! Siz bilan yaqin orada bog'lanamiz!",
+        "ru": "Спасибо за заказ😊! Мы свяжемся с вами в ближайшее время!"
+    },
+    "again": {
+        "uz": "Yangi buyurtma berish uchun quyidagi tugmani bosing!",
+        "ru": "Нажмите кнопку ниже, чтобы разместить новый заказ!"
+    },
+    "callback": {
+        "uz": "🔸 Buyurtma berish 🔸",
+        "ru": "🔸 Заказать 🔸"
+    }
+}
