@@ -40,7 +40,6 @@ bot.start(async (ctx) => {
 const orderScene = new WizardScene(
     "order",
     (ctx) => {
-        console.log(ctx.wizard.cursor);
         ctx.reply(
             `Salom ${ctx.from.first_name}, tilni tanlang:\nПривет ${ctx.from.first_name}, выберите язык:`,
             Markup.keyboard([["O'zbek", "Pусский"]])
@@ -107,8 +106,6 @@ const orderScene = new WizardScene(
     },
     async (ctx) => {
         let msg = ctx.message.text;
-        console.log(msg);
-        console.log(ctx.message);
 
         if (msg == localization.books[ctx.wizard.state.language]) {
             ctx.wizard.state.category = "book";
@@ -221,7 +218,6 @@ const adminScene = new WizardScene(
         return ctx.wizard.next();
     },
     (ctx) => {
-        console.log(ctx.message);
         if (ctx.message.photo) {
             ctx.wizard.state.content_type = "image";
             ctx.wizard.state.image =
