@@ -10,23 +10,35 @@ const localization = require("./localization.json");
 require("dotenv/config");
 
 const bot = new Telegraf(process.env.TOKEN);
+const telegram = new Telegraf.Telegram(process.env.TOKEN);
 
-bot.start((ctx) => {
-    loveCalculate.cursor = 0;
+bot.start(async (ctx) => {
+    orderScene.cursor = 0;
+
+    const res = await axios.get(
+        `${localization.base_url}/users/${ctx.message.chat.id}`
+    );
+
+    if (!res.data.success) {
+        await axios.post(`${localization.base_url}/users`, {
+            telegram_id: ctx.message.chat.id,
+        });
+    }
+
     ctx.reply(
-        `Assalomu alaykum ${ctx.from.first_name}`,
+        `Assalomu alaykum ${ctx.from.first_name}! Kingbook.uz ning rasmiy telegram botiga hush kelibsiz!\nЗдравствуйте ${ctx.from.first_name}! Добро пожаловать в официальный Telegram-бот Kingbook.uz!`,
         Markup.inlineKeyboard([
             Markup.callbackButton(
                 `${localization.callback.uz} / ${localization.callback.ru}`,
-                "LOVE_CALCULATE"
+                "order"
             ),
         ]).extra()
     );
 });
 
 // love calculator two-step wizard
-const loveCalculate = new WizardScene(
-    "love_calculate",
+const orderScene = new WizardScene(
+    "order",
     (ctx) => {
         console.log(ctx.wizard.cursor);
         ctx.reply(
@@ -201,7 +213,82 @@ const loveCalculate = new WizardScene(
     }
 );
 
-const stage = new Stage([loveCalculate], { default: "love_calculate" }); // Scene registration
+const adminScene = new WizardScene(
+    "admin",
+    (ctx) => {
+        ctx.reply("E'lon uchun Rasm / Video jo'nating:");
+
+        return ctx.wizard.next();
+    },
+    (ctx) => {
+        console.log(ctx.message);
+        if (ctx.message.photo) {
+            ctx.wizard.state.content_type = "image";
+            ctx.wizard.state.image =
+                ctx.message.photo[ctx.message.photo.length - 1].file_id;
+        } else if (ctx.message.video) {
+            console.log("Video ...........");
+            ctx.wizard.state.content_type = "video";
+            ctx.wizard.state.video = ctx.message.video.file_id;
+        } else {
+            ctx.wizard.state.content_type = "text";
+        }
+        // ctx.replyWithPhoto(
+        //     ctx.message.photo[ctx.message.photo.length - 1].file_id,
+        //     Extra.caption("test")
+        // );
+        ctx.reply("E'lon matnini jo'nating:");
+
+        return ctx.wizard.next();
+    },
+    async (ctx) => {
+        ctx.wizard.state.caption = ctx.message.text;
+
+        const res = await axios.get(`${localization.base_url}/users`);
+        let users = [];
+
+        if (res.data.success) {
+            users = res.data.data;
+        }
+
+        console.log(users);
+
+        users.forEach((user) => {
+            setTimeout(() => {
+                if (ctx.wizard.state.content_type == "image") {
+                    telegram.sendPhoto(
+                        user.telegram_id,
+                        ctx.wizard.state.image,
+                        Extra.caption(ctx.wizard.state.caption)
+                    );
+                } else if (ctx.wizard.state.content_type == "video") {
+                    telegram.sendVideo(
+                        user.telegram_id,
+                        ctx.wizard.state.video,
+                        Extra.caption(ctx.wizard.state.caption)
+                    );
+                } else {
+                    telegram.sendMessage(
+                        user.telegram_id,
+                        Extra.caption(ctx.wizard.state.caption)
+                    );
+                }
+            }, 200);
+        });
+
+        return ctx.scene.leave();
+    }
+);
+
+const stage = new Stage([orderScene, adminScene]); // Scene registration
 bot.use(session());
 bot.use(stage.middleware());
+
+bot.command("start", (ctx) => {
+    ctx.scene.enter("order");
+});
+bot.command("admin", (ctx) => {
+    ctx.scene.enter("admin");
+});
+
 bot.launch();
