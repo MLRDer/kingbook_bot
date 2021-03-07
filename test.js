@@ -12,34 +12,11 @@ require("dotenv/config");
 const bot = new Telegraf(process.env.TOKEN);
 const telegram = new Telegraf.Telegram(process.env.TOKEN);
 
-bot.start(async (ctx) => {
-    orderScene.cursor = 0;
-
-    const res = await axios.get(
-        `${localization.base_url}/users/${ctx.message.chat.id}`
-    );
-
-    if (!res.data.success) {
-        await axios.post(`${localization.base_url}/users`, {
-            telegram_id: ctx.message.chat.id,
-        });
-    }
-
-    ctx.reply(
-        `Assalomu alaykum ${ctx.from.first_name}! Kingbook.uz ning rasmiy telegram botiga hush kelibsiz!\nЗдравствуйте ${ctx.from.first_name}! Добро пожаловать в официальный Telegram-бот Kingbook.uz!`,
-        Markup.inlineKeyboard([
-            Markup.callbackButton(
-                `${localization.callback.uz} / ${localization.callback.ru}`,
-                "order"
-            ),
-        ]).extra()
-    );
-});
-
 // love calculator two-step wizard
 const orderScene = new WizardScene(
     "order",
     (ctx) => {
+        console.log("started");
         ctx.reply(
             `Salom ${ctx.from.first_name}, tilni tanlang:\nПривет ${ctx.from.first_name}, выберите язык:`,
             Markup.keyboard([["O'zbek", "Pусский"]])
@@ -194,13 +171,7 @@ const orderScene = new WizardScene(
             ctx.reply(
                 `${ctx.from.first_name}, ${
                     localization.again[ctx.wizard.state.language]
-                }`,
-                Markup.inlineKeyboard([
-                    Markup.callbackButton(
-                        `${localization.callback[ctx.wizard.state.language]}`,
-                        "LOVE_CALCULATE"
-                    ),
-                ]).extra()
+                }`
             );
         } else {
             return ctx.reply(localization.error[ctx.wizard.state.language]);
@@ -280,9 +251,22 @@ const stage = new Stage([orderScene, adminScene]); // Scene registration
 bot.use(session());
 bot.use(stage.middleware());
 
-bot.command("start", (ctx) => {
+bot.command("start", async (ctx) => {
+    console.log("start command");
+
+    try {
+        const res = await axios.get(
+            `${localization.base_url}/users/${ctx.message.chat.id}`
+        );
+    } catch (err) {
+        await axios.post(`${localization.base_url}/users`, {
+            telegram_id: ctx.message.chat.id,
+        });
+    }
+
     ctx.scene.enter("order");
 });
+
 bot.command("admin", (ctx) => {
     ctx.scene.enter("admin");
 });
