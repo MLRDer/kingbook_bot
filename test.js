@@ -157,6 +157,7 @@ const orderScene = new WizardScene(
         if (ctx.message.text != localization.next[ctx.wizard.state.language])
             ctx.wizard.state.location = ctx.message.location;
         ctx.wizard.state.name = ctx.message.chat.first_name;
+        ctx.wizard.state.username = ctx.message.chat.username;
         ctx.wizard.state.order_from = "telegram";
 
         const res = await axios.post(
@@ -252,8 +253,6 @@ bot.use(session());
 bot.use(stage.middleware());
 
 bot.command("start", async (ctx) => {
-    console.log("start command");
-
     try {
         const res = await axios.get(
             `${localization.base_url}/users/${ctx.message.chat.id}`
@@ -269,6 +268,18 @@ bot.command("start", async (ctx) => {
 
 bot.command("admin", (ctx) => {
     ctx.scene.enter("admin");
+});
+
+bot.command("test", (ctx) => {
+    let a = [];
+    let x;
+    while (a.length < 6) {
+        x = Math.floor(Math.random() * 37) + 1;
+        if (!a.includes(x)) {
+            a.push(x);
+        }
+    }
+    ctx.reply(a);
 });
 
 bot.launch();
