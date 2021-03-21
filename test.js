@@ -274,7 +274,7 @@ bot.command("test", (ctx) => {
     let a = [];
     let x;
     while (a.length < 6) {
-        x = Math.floor(Math.random() * 37) + 1;
+        x = Math.floor(Math.random() * 36) + 1;
         if (!a.includes(x)) {
             a.push(x);
         }
