@@ -7,6 +7,7 @@ const Extra = require("telegraf/extra");
 
 const axios = require("axios");
 const localization = require("./localization.json");
+const functions = require("./functions");
 require("dotenv/config");
 
 const bot = new Telegraf(process.env.TOKEN);
@@ -17,6 +18,7 @@ const orderScene = new WizardScene(
     "order",
     (ctx) => {
         console.log("started");
+
         ctx.reply(
             `Salom ${ctx.from.first_name}, tilni tanlang:\nПривет ${ctx.from.first_name}, выберите язык:`,
             Markup.keyboard([["O'zbek", "Pусский"]])
@@ -29,30 +31,30 @@ const orderScene = new WizardScene(
         return ctx.wizard.next();
     },
     (ctx) => {
-        console.log("Language");
-        let language = ctx.message.text;
-        if (language == "O'zbek") language = "uz";
-        else if (language == "Pусский") language = "ru";
-        else {
-            ctx.reply(
-                `Salom ${ctx.from.first_name}, tilni tanlang:\nПривет ${ctx.from.first_name}, выберите язык:`,
-                Markup.keyboard([["O'zbek", "Pусский"]])
-                    .oneTime()
-                    .resize()
-                    .extra()
-            );
+        if (!ctx.wizard.state.language) {
+            console.log("Language");
+            let language = ctx.message.text;
+            if (language == "O'zbek") language = "uz";
+            else if (language == "Pусский") language = "ru";
+            else {
+                ctx.reply(
+                    `${localization.option_error.uz}\n${localization.option_error.ru}`
+                );
+                ctx.wizard.back();
+                return ctx.wizard.steps[ctx.wizard.cursor](ctx);
+            }
+
+            ctx.wizard.state.language = language;
         }
 
-        ctx.wizard.state.language = language;
-
         ctx.reply(
-            localization.phone[language],
+            localization.phone[ctx.wizard.state.language],
             Extra.markup((markup) => {
                 return markup
                     .resize()
                     .keyboard([
                         markup.contactRequestButton(
-                            localization.my_number[language]
+                            localization.my_number[ctx.wizard.state.language]
                         ),
                     ]);
             })
@@ -62,10 +64,22 @@ const orderScene = new WizardScene(
         return ctx.wizard.next();
     },
     (ctx) => {
-        console.log("CONTACT");
-        ctx.wizard.cursor = 2;
-        if (!ctx.wizard.state.phone)
-            ctx.wizard.state.phone = ctx.message.contact.phone_number;
+        if (!ctx.wizard.state.phone) {
+            console.log("CONTACT");
+            if (ctx.message.contact)
+                ctx.wizard.state.phone = ctx.message.contact.phone_number;
+            else {
+                if (functions.phoneNumberValidator(ctx.message.text)) {
+                    ctx.wizard.state.phone = ctx.message.text;
+                } else {
+                    ctx.reply(
+                        `${localization.phone_error[ctx.wizard.state.language]}`
+                    );
+                    ctx.wizard.back();
+                    return ctx.wizard.steps[ctx.wizard.cursor](ctx);
+                }
+            }
+        }
 
         ctx.reply(
             localization.category[ctx.wizard.state.language],
@@ -219,7 +233,7 @@ const adminScene = new WizardScene(
             users = res.data.data;
         }
 
-        console.log(users);
+        // console.log(users);
 
         users.forEach((user) => {
             setTimeout(() => {
@@ -238,7 +252,7 @@ const adminScene = new WizardScene(
                 } else {
                     telegram.sendMessage(
                         user.telegram_id,
-                        Extra.caption(ctx.wizard.state.caption)
+                        ctx.wizard.state.caption
                     );
                 }
             }, 200);
@@ -248,7 +262,88 @@ const adminScene = new WizardScene(
     }
 );
 
-const stage = new Stage([orderScene, adminScene]); // Scene registration
+const bookScene = new WizardScene(
+    "book",
+    (ctx) => {
+        ctx.reply(
+            "Qanday darslik qo'shmoqchisiz?",
+            Markup.keyboard([["Kitob", "Video darslik"]])
+                .oneTime()
+                .resize()
+                .extra()
+        );
+
+        return ctx.wizard.next();
+    },
+    (ctx) => {
+        let type = ctx.message.text;
+        if (type == "Kitob") type = "book";
+        else if (type == "Video darslik") type = "video";
+        else {
+            ctx.reply("Faqat berilgan tugmalardan foydalaning!");
+            ctx.wizard.back();
+            return ctx.wizard.steps[ctx.wizard.cursor](ctx);
+        }
+
+        ctx.wizard.state.type = type;
+
+        ctx.reply("Darslikning o'zbekcha nomini kiriting:");
+        return ctx.wizard.next();
+    },
+    (ctx) => {
+        ctx.wizard.state.name_uz = ctx.message.text;
+
+        ctx.reply("Darslikning ruscha nomini kiriting:");
+        return ctx.wizard.next();
+    },
+    (ctx) => {
+        ctx.wizard.state.name_ru = ctx.message.text;
+
+        ctx.reply(
+            `Yangi darslik:
+        
+        nomi:
+            uz: ${ctx.wizard.state.name_uz}
+            ru: ${ctx.wizard.state.name_ru}
+        turi: ${ctx.wizard.state.type}
+        
+        Hammasi to'g'rimi?`,
+            Markup.keyboard([["Ha", "Yo'q"]])
+                .oneTime()
+                .resize()
+                .extra()
+        );
+
+        ctx.wizard.next();
+    },
+    async (ctx) => {
+        if (ctx.message.text == "Ha") {
+            let book = {
+                name: {
+                    uz: ctx.wizard.state.name_uz,
+                    ru: ctx.wizard.state.name_ru,
+                },
+                type: ctx.wizard.state.type,
+            };
+            const res = await axios.post(
+                `${localization.base_url}/books`,
+                book
+            );
+            if (res.data.success) {
+                ctx.reply("Muvaffaqiyatli qo'shildi!");
+            } else {
+                ctx.reply("Xatolik yuz berdi");
+            }
+        } else {
+            ctx.wizard.back();
+            return ctx.wizard.steps[ctx.wizard.cursor - 3](ctx);
+        }
+
+        return ctx.scene.leave();
+    }
+);
+
+const stage = new Stage([orderScene, adminScene, bookScene]); // Scene registration
 bot.use(session());
 bot.use(stage.middleware());
 
@@ -266,8 +361,12 @@ bot.command("start", async (ctx) => {
     ctx.scene.enter("order");
 });
 
-bot.command("admin", (ctx) => {
+bot.command("elon", (ctx) => {
     ctx.scene.enter("admin");
+});
+
+bot.command("darslik", (ctx) => {
+    ctx.scene.enter("book");
 });
 
 bot.command("test", (ctx) => {
@@ -280,6 +379,10 @@ bot.command("test", (ctx) => {
         }
     }
     ctx.reply(a);
+});
+
+bot.on("message", (ctx) => {
+    ctx.reply(`${localization.start.uz}\n${localization.start.ru}`);
 });
 
 bot.launch();

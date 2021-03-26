@@ -63,5 +63,17 @@
     "callback": {
         "uz": "🔸 Buyurtma berish 🔸",
         "ru": "🔸 Заказать 🔸"
+    },
+    "option_error": {
+        "uz": "Iltimos faqat quyidagilardan birini tanlang!",
+        "ru": "Пожалуйста, выберите только одно из следующих!"
+    },
+    "phone_error": {
+        "uz": "Iltimos telefon raqamingizni to'g'ri kiriting!",
+        "ru": "Пожалуйста, введите свой номер телефона правильно!"
+    },
+    "start": {
+        "uz": "Iltimos botni qaytadan ishga tushurish uchun /start buyrug'idan foydalaning!",
+        "ru": "Пожалуйста, используйте команду /start для перезапуска бота!"
     }
 }
