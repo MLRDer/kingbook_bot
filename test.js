@@ -17,7 +17,7 @@ const telegram = new Telegraf.Telegram(process.env.TOKEN);
 const orderScene = new WizardScene(
     "order",
     (ctx) => {
-        console.log("started");
+        console.log(ctx.wizard.cursor);
 
         ctx.reply(
             `Salom ${ctx.from.first_name}, tilni tanlang:\nПривет ${ctx.from.first_name}, выберите язык:`,
@@ -64,8 +64,8 @@ const orderScene = new WizardScene(
         return ctx.wizard.next();
     },
     (ctx) => {
+        console.log("CONTACT");
         if (!ctx.wizard.state.phone) {
-            console.log("CONTACT");
             if (ctx.message.contact)
                 ctx.wizard.state.phone = ctx.message.contact.phone_number;
             else {
@@ -97,6 +97,7 @@ const orderScene = new WizardScene(
     },
     async (ctx) => {
         let msg = ctx.message.text;
+        console.log("dsdfsdf");
 
         if (msg == localization.books[ctx.wizard.state.language]) {
             ctx.wizard.state.category = "book";
@@ -143,12 +144,14 @@ const orderScene = new WizardScene(
     },
     (ctx) => {
         let msg = ctx.message.text;
+        console.log("test");
 
         if (msg == localization.back[ctx.wizard.state.language]) {
-            ctx.wizard.back();
-            return ctx.wizard.steps[ctx.wizard.cursor - 1](ctx);
+            ctx.wizard.cursor = 2;
+            return ctx.wizard.steps[ctx.wizard.cursor](ctx);
         } else {
             ctx.wizard.state.book = ctx.message.text;
+            console.log("else");
             ctx.reply(
                 localization.location[ctx.wizard.state.language],
                 Extra.markup((markup) => {
