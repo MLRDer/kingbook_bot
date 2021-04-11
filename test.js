@@ -350,6 +350,7 @@ const stage = new Stage([orderScene, adminScene, bookScene]); // Scene registrat
 bot.use(session());
 bot.use(stage.middleware());
 
+// dont change anything
 bot.command("start", async (ctx) => {
     try {
         const res = await axios.get(
